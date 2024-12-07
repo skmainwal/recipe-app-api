@@ -1,0 +1,17 @@
+docker-compose build
+
+To Run linting:
+docker-compose run --rm app sh -c "flake8"
+
+
+To create Django project via docker command:
+docker-compose run --rm app sh -c "django-admin startproject app ."
+
+To run the docker container (Started project in dev mode):
+docker-compose up
+
+ 
+Github Action Commands:
+ 1. Coding Linting 2. Unit testing 
+
+ Triggering Github Actions:

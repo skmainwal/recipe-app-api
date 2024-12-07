@@ -1,0 +1,6 @@
+[flake8]
+
+# exclude the migrations, __pycache__, settings.py,manage.py for linting
+exclude = migrations, __pycache__, settings.py,manage.py
+
+
