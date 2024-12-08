@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
+    'core',  # core app
+    'rest_framework', # enables django rest framework
+    'drf_spectacular', # enables django rest framework schema generation
 ]
 
 MIDDLEWARE = [
@@ -75,13 +77,13 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DB_HOST'),
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASS'),
-        'PORT': os.environ.get('DB_PORT'),
+    'default': {  # This is the default database configuration
+        'ENGINE': 'django.db.backends.postgresql',  # Specifies the database backend to use, which is PostgreSQL in this case
+        'HOST': os.environ.get('DB_HOST'),  # The hostname of the database server, fetched from an environment variable
+        'NAME': os.environ.get('DB_NAME'),  # The name of the database, fetched from an environment variable
+        'USER': os.environ.get('DB_USER'),  # The username to connect to the database, fetched from an environment variable
+        'PASSWORD': os.environ.get('DB_PASS'),  # The password for the database user, fetched from an environment variable
+        'PORT': os.environ.get('DB_PORT'),  # The port number to connect to the database, fetched from an environment variable
     }
 }
 
@@ -131,3 +133,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL='core.User'
+
+# Configure Django Rest Framework to use drf-spectacular's auto-generated schema
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
