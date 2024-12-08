@@ -1,20 +1,18 @@
-version: "3.9" # Specifies the version of the Docker Compose file format
-
 services:
-  app: # Defines a service named 'app'
+  app:
     build:
-      context: . # Sets the build context to the current directory
+      context: .
       args:
-        - DEV=true # Passes a build argument 'DEV' with the value 'true'
+        - DEV=true
 
     ports:
-      - "8000:8000" # Maps port 8000 on the host to port 8000 on the container
+      - "8000:8000"
 
     volumes:
-      - ./app:/app # Mounts the local './app' directory to '/app' in the container
+      - ./app:/app
 
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"  # Runs the Django development server, accessible on all network interfaces
+      sh -c "python manage.py runserver 0.0.0.0:8000"
     environment:
       - DB_HOST=db
       - DB_NAME=devdb
