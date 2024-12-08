@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'core',  # core app
     'rest_framework', # enables django rest framework
     'drf_spectacular', # enables django rest framework schema generation
+    'user', # user app
 ]
 
 MIDDLEWARE = [
