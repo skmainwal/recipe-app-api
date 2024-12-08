@@ -13,16 +13,16 @@ class ModelTests(TestCase):
         # Define the email and password for the test user
         email = 'test@example.com'
         password = 'testpass123'
-        
+
         # Create a new user using the custom user model
         user = get_user_model().objects.create_user(
             email=email,
             password=password,
         )
-        
+
         # Assert that the user's email is set correctly
         self.assertEqual(user.email, email)
-        
+
         # Assert that the user's password is set correctly and can be verified
         self.assertTrue(user.check_password(password))
 
@@ -40,6 +40,11 @@ class ModelTests(TestCase):
         for email, expected in sample_emails:
             # Create a new user with the sample email
             user = get_user_model().objects.create_user(email, 'sample123')
-            
+
             # Assert that the user's email is normalized as expected
             self.assertEqual(user.email, expected)
+
+    def test_new_user_without_email_raises_error(self):
+        """Test that creating a user without an email raises a ValueError."""
+        with self.assertRaises(ValueError):
+            get_user_model().objects.create_user('', 'test123')

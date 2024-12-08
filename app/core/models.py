@@ -10,10 +10,12 @@ from django.contrib.auth.models import (
 
 class UserManager(BaseUserManager):
     """Manager for users."""
-    
+
 
     def create_user(self, email, password=None, **extra_fields):
         """Create, save and return a new user."""
+        if not email:
+            raise ValueError('User must have an email address.')    # Raise an error if email is not provided
         # Normalize the email address by lowercasing the domain part of it
         user = self.model(email=self.normalize_email(email), **extra_fields)
         # Set the user's password using Django's built-in method
