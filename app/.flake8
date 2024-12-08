@@ -1,6 +1,9 @@
 [flake8]
 
-# exclude the migrations, __pycache__, settings.py,manage.py for linting
-exclude = migrations, __pycache__, settings.py,manage.py
+# Exclude the migrations, __pycache__, settings.py, manage.py for linting
+exclude = migrations, __pycache__, settings.py, manage.py
+
+# Set this to your desired maximum line length
+max-line-length = 120
 
 
