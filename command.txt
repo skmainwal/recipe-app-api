@@ -1,3 +1,8 @@
+docker-compose down
+
+docker-compose up
+
+
 docker-compose build
 
 To Run linting:
@@ -10,19 +15,39 @@ docker-compose run --rm app sh -c "django-admin startproject app ."
 To run the docker container (Started project in dev mode):
 docker-compose up
 
- 
+
 Github Action Commands:
- 1. Coding Linting 2. Unit testing 
+ 1. Coding Linting 2. Unit testing
 
  Triggering Github Actions:
 
 
  docker-compose run --rm app sh -c "python manage.py test"
 
-DB Connection Cehck 
+DB Connection Cehck
 
- docker-compose run --rm app sh -c "python manage.py wait_for_db"
+docker-compose run --rm app sh -c "python manage.py wait_for_db"
 
- Linting issue :
- docker-compose run --rm app sh -c "python manage.py wait_for_db && flake8"
+Linting issue :
+    docker-compose run --rm app sh -c "python manage.py wait_for_db && flake8"
+    docker-compose run --rm app sh -c "flake8"
 
+
+Database Migrations:
+    Create Migrations:
+        docker-compose run --rm app sh -c "python manage.py makemigrations"
+    Apply Migrations:
+        docker-compose run --rm app sh -c "python manage.py migrate"
+
+    To clear the Database:
+
+        docker volume ls
+        docker-compose down
+
+        clear all the data in the database
+            docker volume rm <volume_name>
+
+
+
+Creating a superuser:
+    docker-compose run --rm app sh -c "python manage.py createsuperuser"
