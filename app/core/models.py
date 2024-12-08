@@ -10,14 +10,15 @@ from django.contrib.auth.models import (
 
 class UserManager(BaseUserManager):
     """Manager for users."""
+    
 
     def create_user(self, email, password=None, **extra_fields):
         """Create, save and return a new user."""
-        # Create a new user instance with the provided email and extra fields
-        user = self.model(email=email, **extra_fields)
+        # Normalize the email address by lowercasing the domain part of it
+        user = self.model(email=self.normalize_email(email), **extra_fields)
         # Set the user's password using Django's built-in method
         user.set_password(password)
-        # Save the user instance to the database
+        # Save the user instance to the database using the specified database alias
         user.save(using=self._db)
         return user  # Return the created user instance
 
