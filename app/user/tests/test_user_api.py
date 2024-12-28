@@ -7,6 +7,7 @@ from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')  # URL for the user creation endpoint
 TOKEN_URL = reverse('user:token')  # URL for the token generation endpoint
+ME_URL = reverse('user:me')  # URL for the user profile endpoint
 
 
 def create_user(**params):
@@ -99,3 +100,77 @@ class PublicUserApiTests(TestCase):
 
         self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+    def test_retrieve_user_unauthorized(self):
+        """Test authentication is required for users."""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class PrivateUserApiTests(TestCase):
+    """Test API requests that require authentication.
+    This test class focuses on endpoints that require a user to be logged in.
+    It tests the authenticated user's ability to retrieve and update their profile."""
+
+    def setUp(self):
+        """Create test client and authenticate user.
+        This method runs before each test:
+        1. Creates a test user
+        2. Creates an API client
+        3. Forces authentication for all requests"""
+        self.user = create_user(
+            email='test@example.com',
+            password='testpass123',
+            name='Test Name',
+        )
+        self.client = APIClient()  # Create a test client for making HTTP requests
+        self.client.force_authenticate(user=self.user)  # Authenticate all requests with our test user
+
+    def test_retrieve_profile_success(self):
+        """Test retrieving profile for logged in user.
+        Verifies that:
+        1. The GET request to /api/user/me/ returns HTTP 200
+        2. The response contains the correct user data
+        3. Only safe fields (name, email) are returned"""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
+            'name': self.user.name,
+            'email': self.user.email,
+        })
+
+    def test_post_me_not_allowed(self):
+        """Test POST is not allowed for the me endpoint.
+        Verifies that:
+        1. POST requests to /api/user/me/ are not allowed
+        2. Returns HTTP 405 Method Not Allowed"""
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)   
+
+    def test_update_user_profile(self):
+        """Test updating the user profile for the authenticated user.
+        Verifies that:
+        1. User can update their name and password
+        2. Changes are saved to the database
+        3. Returns HTTP 200 on successful update
+        4. Password is properly hashed when updated"""
+        payload = {'name': 'Updated Name', 'password': 'newpassword123'}
+
+        res = self.client.patch(ME_URL, payload)
+
+        self.user.refresh_from_db()  # Refresh user instance from database to get updated values
+        self.assertEqual(self.user.name, payload['name'])  # Verify name was updated
+        self.assertTrue(self.user.check_password(payload['password']))  # Verify password was updated and hashed
+        self.assertEqual(res.status_code, status.HTTP_200_OK)   
+
+
+
+
+
+
+
+
+
