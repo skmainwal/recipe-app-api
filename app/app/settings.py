@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',  # core app
     'rest_framework', # enables django rest framework
+    'rest_framework.authtoken', # enables django rest framework authentication
     'drf_spectacular', # enables django rest framework schema generation
     'user', # user app
 ]
