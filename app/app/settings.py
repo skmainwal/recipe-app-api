@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # enables django rest framework authentication
     'drf_spectacular', # enables django rest framework schema generation
     'user', # user app
+    'recipe', # recipe app
 ]
 
 MIDDLEWARE = [
