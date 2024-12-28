@@ -28,6 +28,34 @@ class UserSerializer(serializers.ModelSerializer):
         # Use the custom create_user method to ensure the password is hashed
         return get_user_model().objects.create_user(**validated_data)
     
+    def update(self, instance, validated_data):
+        """Update and return a user with encrypted password.
+        
+        Args:
+            instance: The existing user instance that needs to be updated
+            validated_data: Dictionary containing the validated fields to update
+            
+        Returns:
+            User: The updated user instance
+        """
+        # Extract the password from validated_data if it exists, otherwise None
+        # Using pop() removes it from validated_data to prevent direct password update
+        password = validated_data.pop('password', None)
+        
+        # Update all other user fields using the parent class's update method
+        # This handles updating fields like email, name, etc.
+        user = super().update(instance, validated_data)
+        
+        # If a new password was provided in the update request
+        if password:
+            # Use set_password to properly hash the new password
+            # This is more secure than directly setting the password field
+            user.set_password(password)
+            # Save the user instance to persist the password change
+            user.save()
+            
+        return user
+    
 
 
 class AuthTokenSerializer(serializers.Serializer):

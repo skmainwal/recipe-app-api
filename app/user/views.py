@@ -2,7 +2,7 @@
 Views for the user API.
 """
 
-from rest_framework import generics
+from rest_framework import generics, authentication, permissions
 from user.serializers import (UserSerializer, AuthTokenSerializer)
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
@@ -31,3 +31,34 @@ class CreateTokenView(ObtainAuthToken):
     # The renderer_classes attribute specifies the renderer classes that should be used
     # for rendering the response. Here, it uses the default renderer classes provided by
     # Django REST Framework.
+
+
+class ManageUserView(generics.RetrieveUpdateAPIView):
+    """Manage the authenticated user.
+    
+    This view inherits from RetrieveUpdateAPIView which provides GET and PATCH/PUT
+    methods for retrieving and updating a user's details. This means users can:
+    - GET their own details
+    - Update their own details
+    """
+    serializer_class = UserSerializer
+    # Specifies the serializer to convert user objects to/from JSON
+    # Uses the same UserSerializer as CreateUserView
+
+    authentication_classes = [authentication.TokenAuthentication]
+    # Defines how users should authenticate themselves
+    # TokenAuthentication expects requests to include an auth token in header:
+    # Authorization: Token <token-value>
+
+    permission_classes = [permissions.IsAuthenticated]
+    # Specifies that only authenticated users can access this view
+    # If user is not authenticated, they will get a 401 Unauthorized response
+
+    def get_object(self):
+        """Retrieve and return the authenticated user.
+        
+        This method is called by the view to get the object to operate on.
+        Instead of looking up an object by ID, it returns the currently
+        authenticated user from the request.
+        """
+        return self.request.user    
