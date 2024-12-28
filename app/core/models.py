@@ -9,6 +9,9 @@ from django.contrib.auth.models import (
     PermissionsMixin,  # Mixin that adds permission-related fields and methods
 )
 
+from django.conf import settings
+
+
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -55,3 +58,30 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Specify that the email field will be used as the unique identifier for authentication
     USERNAME_FIELD = 'email'
+
+
+class Recipe(models.Model):
+    """Recipe object - represents a cooking recipe in the system."""
+    # Link recipe to a specific user (foreign key relationship)
+    # If user is deleted, all their recipes will be deleted (CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    # Title of the recipe, required field with max length of 255 chars
+    title = models.CharField(max_length=255)
+    # Time to prepare/cook the recipe in minutes (integer field)
+    time_minutes = models.IntegerField()
+    # Price of the recipe - allows decimal numbers up to 999.99
+    # max_digits=5 means total length, decimal_places=2 means 2 decimal points
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    # Optional text field for recipe description/steps
+    # blank=True means this field is optional
+    description = models.TextField(blank=True)
+    # Optional URL field to link to external recipe sources
+    # blank=True means this field is optional
+    link = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        """Return string representation of recipe."""
+        return self.title
