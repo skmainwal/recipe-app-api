@@ -18,7 +18,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     - Delete recipe (DELETE <id>)
     """
     # Serializer class that handles converting Recipe objects to/from JSON
-    serializer_class = serializers.RecipeSerializer
+    serializer_class = serializers.RecipeDetailSerializer
     # Base queryset of all recipes in the database
     queryset = Recipe.objects.all()
     # Specifies that token authentication is required for all endpoints
@@ -35,4 +35,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
             The distinct() call ensures no duplicate recipes are returned.
         """
         return self.queryset.filter(user=self.request.user).order_by('-id').distinct()
+    
+    def get_serializer_class(self):
+        """Return the serializer class for request.
+        
+        Returns:
+            Serializer class based on the action being performed.
+        """
+        if self.action == 'list':
+            return serializers.RecipeSerializer
+        return self.serializer_class
+    
+    def perform_create(self, serializer):
+        """Create a new recipe."""
+        serializer.save(user=self.request.user) 
     
