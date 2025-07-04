@@ -5,6 +5,16 @@ from rest_framework import serializers
 from core.models import Recipe, Tag
 
 
+
+class TagSerializer(serializers.ModelSerializer):
+    """Serializer for tags."""
+
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
+        read_only_fields = ['id']
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipes.
     
@@ -12,6 +22,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     It handles the serialization of recipe data for API responses and
     deserialization of incoming recipe data for creating/updating recipes.
     """
+    # Define the tags field using the TagSerializer
+    # many=True allows multiple tags per recipe
+    # required=False makes the field optional when creating/updating recipes
+    tags = TagSerializer(many=True, required=False)
 
     class Meta:
         """Meta class defining the serializer configuration.
@@ -22,20 +36,55 @@ class RecipeSerializer(serializers.ModelSerializer):
             read_only_fields: Fields that should not be modified via API
         """
         model = Recipe
-        fields = ['id', 'title', 'time_minutes', 'price', 'link']  # Fields exposed in the API
+        fields = [
+            'id',        # Recipe identifier
+            'title',     # Recipe title/name
+            'time_minutes', # Time to prepare recipe
+            'price',     # Recipe cost
+            'link',      # URL to recipe details
+            'tags'       # Associated tags
+        ]
         read_only_fields = ['id']  # ID is auto-generated and should not be modified
 
+    def create(self, validated_data):
+        """Create a recipe with associated tags.
+        
+        This method handles:
+        1. Extracting tags data from the validated input
+        2. Creating the base recipe
+        3. Creating or retrieving existing tags
+        4. Associating tags with the recipe
+        
+        Args:
+            validated_data: Dictionary of validated recipe data
+            
+        Returns:
+            Recipe: The newly created recipe instance
+        """
+        # Extract tags data and remove from validated_data
+        tags = validated_data.pop('tags', [])
+        
+        # Create the recipe instance without tags
+        recipe = Recipe.objects.create(**validated_data)
+        
+        # Get the authenticated user from the request context
+        auth_user = self.context['request'].user
+        
+        # Process each tag in the request
+        for tag in tags:
+            # Get or create the tag for the authenticated user
+            # This prevents duplicate tags and ensures tag ownership
+            tag_obj, created = Tag.objects.get_or_create(
+                user=self.context['request'].user,
+                **tag
+            )
+            # Associate the tag with the recipe
+            recipe.tags.add(tag_obj)
+            
+        return recipe
 
 class RecipeDetailSerializer(RecipeSerializer):
     """Serializer for recipe detail view."""
  
     class Meta(RecipeSerializer.Meta):
         fields = RecipeSerializer.Meta.fields + ['description']
-
-class TagSerializer(serializers.ModelSerializer):
-    """Serializer for tags."""
-
-    class Meta:
-        model = Tag
-        fields = ['id', 'name']
-        read_only_fields = ['id']
