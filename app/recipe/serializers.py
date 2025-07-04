@@ -46,6 +46,20 @@ class RecipeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id']  # ID is auto-generated and should not be modified
 
+
+    def _get_or_create_tags(self, tags, recipe):
+        """Helper method to get or create tags and add them to a recipe."""
+        auth_user = self.context['request'].user
+        for tag in tags:
+            tag_obj, created = Tag.objects.get_or_create(
+                user=auth_user,
+                **tag
+            )
+            recipe.tags.add(tag_obj)
+            
+    
+
+
     def create(self, validated_data):
         """Create a recipe with associated tags.
         
@@ -66,22 +80,44 @@ class RecipeSerializer(serializers.ModelSerializer):
         
         # Create the recipe instance without tags
         recipe = Recipe.objects.create(**validated_data)
-        
-        # Get the authenticated user from the request context
-        auth_user = self.context['request'].user
-        
-        # Process each tag in the request
-        for tag in tags:
-            # Get or create the tag for the authenticated user
-            # This prevents duplicate tags and ensures tag ownership
-            tag_obj, created = Tag.objects.get_or_create(
-                user=self.context['request'].user,
-                **tag
-            )
-            # Associate the tag with the recipe
-            recipe.tags.add(tag_obj)
+
+        self._get_or_create_tags(tags, recipe)
             
         return recipe
+    
+
+    def update(self, instance, validated_data):
+        """Update a recipe with associated tags.
+        
+        This method handles:
+        1. Extracting tags data from the validated input
+        2. Updating the base recipe
+        3. Creating or retrieving existing tags 
+        
+        Args:
+            instance: The existing recipe instance to update
+            validated_data: Dictionary of validated recipe data
+            
+        Returns:
+            Recipe: The updated recipe instance
+            
+        """
+        # Extract tags data and remove from validated_data
+        tags = validated_data.pop('tags', None)
+        
+        
+
+        if tags is not None:
+            instance.tags.clear()
+            self._get_or_create_tags(tags, instance)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+           
+        return instance # Return the updated recipe instance
+
 
 class RecipeDetailSerializer(RecipeSerializer):
     """Serializer for recipe detail view."""
