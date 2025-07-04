@@ -1,5 +1,7 @@
 """ Test for the tags API."""
 
+from decimal import Decimal
+
 # Import Django's user model manager to create test users
 from django.contrib.auth import get_user_model
 # Import reverse to generate URLs from URL names
@@ -272,5 +274,76 @@ class PrivateTagsApiTests(TestCase):
             ).exists()
             self.assertTrue(exists)
 
-    
-   
+
+    def test_filter_tags_assigned_to_recipes(self):
+        """Test filtering tags by those assigned to recipes.
+        
+        Use case:
+        When users want to see only tags that are actually being used in recipes,
+        they can filter the tags list using the assigned_only parameter.
+        This test verifies that:
+        1. Only tags associated with recipes are returned when filtered
+        2. Unused tags are excluded from results
+        3. The filtering parameter works as expected
+        """
+        # Create two test tags - one to assign to a recipe, one unassigned
+        tag1 = Tag.objects.create(user=self.user, name='Breakfast')
+        tag2 = Tag.objects.create(user=self.user, name='Lunch')
+
+        # Create a recipe and assign only the first tag to it
+        recipe = Recipe.objects.create(
+            title='Pancakes',
+            time_minutes=10,
+            price=Decimal('5.00'),  
+            user=self.user
+        )
+        recipe.tags.add(tag1)
+
+        # Make API request with assigned_only filter
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        # Serialize both tags for comparison
+        s1 = TagSerializer(tag1)
+        s2 = TagSerializer(tag2)
+
+        # Verify that only the assigned tag is in the response
+        self.assertIn(s1.data, res.data)
+        self.assertNotIn(s2.data, res.data)
+
+
+    def test_filter_tags_unique(self):
+        """Test filtering tags returns a unique list.
+        
+        Use case:
+        When filtering tags that are assigned to recipes, we want to ensure
+        that tags are not duplicated in the results even if they are used
+        in multiple recipes. This test verifies that:
+        1. A tag used in multiple recipes appears only once in filtered results
+        2. The assigned_only filter properly deduplicates tags
+        3. The count of returned tags is correct
+        """
+        # Create test tags - one to assign to recipes, one unassigned
+        tag = Tag.objects.create(user=self.user, name='Breakfast')
+        Tag.objects.create(user=self.user, name='Lunch')
+
+        # Create first recipe and assign the tag
+        recipe1 = Recipe.objects.create(
+            title='Pancakes',
+            time_minutes=10,
+            price=Decimal('5.00'),  
+            user=self.user
+        )
+        recipe1.tags.add(tag)
+
+        # Create second recipe and assign the same tag
+        recipe2 = Recipe.objects.create(
+            title='Porridge',
+            time_minutes=3,
+            price=Decimal('2.00'),
+            user=self.user
+        )
+        recipe2.tags.add(tag)
+
+        # Filter tags by assigned_only and verify unique results
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        self.assertEqual(len(res.data), 1)  # Should only return one tag

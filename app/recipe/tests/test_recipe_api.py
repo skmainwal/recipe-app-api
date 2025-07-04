@@ -431,6 +431,79 @@ class PrivateRecipeApiTests(TestCase):
         res = self.client.patch(url, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(recipe.ingredients.count(), 0)
+
+
+    def test_filter_by_tags(self):
+        """Test filtering recipes by tags.
+        
+        Use case:
+        This test verifies that the recipe filtering functionality works correctly when
+        filtering by tags. It tests that:
+        1. Only recipes with specified tags are returned
+        2. Multiple tag filters work together
+        3. Recipes without the specified tags are excluded
+        """
+        # Create two test recipes with different titles
+        r1 = create_recipe(user=self.user, title='Thai Vegetable Curry')
+        r2 = create_recipe(user=self.user, title='Aubergine with Tahini')
+        
+        # Create two test tags
+        tag1 = Tag.objects.create(user=self.user, name='Vegan')
+        tag2 = Tag.objects.create(user=self.user, name='Vegetarian')
+        
+        # Associate tags with recipes - r1 gets tag1, r2 gets tag2
+        r1.tags.add(tag1)
+        r2.tags.add(tag2)
+        
+        # Create a third recipe without any tags for comparison
+        r3 = create_recipe(user=self.user, title='Fish and chips')
+        
+        # Construct query parameters to filter by both tags
+        params = {'tags': f'{tag1.id},{tag2.id}'}
+        
+        # Make GET request to recipes endpoint with tag filters
+        res = self.client.get(
+            RECIPES_URL,
+            params
+        )
+        
+        # Serialize the recipes to compare with API response
+        s1 = RecipeSerializer(r1)
+        s2 = RecipeSerializer(r2)
+        s3 = RecipeSerializer(r3)
+        
+        # Verify that recipes with matching tags are included
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        # Verify that recipe without matching tags is excluded
+        self.assertNotIn(s3.data, res.data)
+
+    def test_filter_by_ingredients(self):
+        """Test filtering recipes by ingredients."""
+        r1 = create_recipe(user=self.user, title='Posh Beans on Toast')
+        r2 = create_recipe(user=self.user, title='Chicken Cacciatore')
+        in1 = Ingredient.objects.create(user=self.user, name='Feta Cheese')
+        in2 = Ingredient.objects.create(user=self.user, name='Chicken')
+        r1.ingredients.add(in1)
+        r2.ingredients.add(in2)
+        r3 = create_recipe(user=self.user, title='Fish and chips')
+        params = {'ingredients': f'{in1.id},{in2.id}'}
+        res = self.client.get(
+            RECIPES_URL,
+            params
+        )
+        s1 = RecipeSerializer(r1)
+        s2 = RecipeSerializer(r2)  
+        s3 = RecipeSerializer(r3)
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
+
+        
+        
+        
+        
         
     
 
