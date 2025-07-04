@@ -35,6 +35,11 @@ class RecipeSerializer(serializers.ModelSerializer):
     # required=False makes the field optional when creating/updating recipes
     tags = TagSerializer(many=True, required=False)
 
+    # Define the ingredients field using the IngredientSerializer
+    # many=True allows multiple ingredients per recipe
+    # required=False makes the field optional when creating/updating recipes
+    ingredients = IngredientSerializer(many=True, required=False)
+
     class Meta:
         """Meta class defining the serializer configuration.
         
@@ -50,7 +55,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'time_minutes', # Time to prepare recipe
             'price',     # Recipe cost
             'link',      # URL to recipe details
-            'tags'       # Associated tags
+            'tags',      # Associated tags
+            'ingredients' # Associated ingredients
         ]
         read_only_fields = ['id']  # ID is auto-generated and should not be modified
 
@@ -66,6 +72,20 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe.tags.add(tag_obj)
             
     
+
+
+    def _get_or_create_ingredients(self, ingredients, recipe):
+        """Helper method to get or create ingredients and add them to a recipe."""
+        auth_user = self.context['request'].user
+        for ingredient in ingredients:
+            ingredient_obj, created = Ingredient.objects.get_or_create(
+                user=auth_user,
+                **ingredient)
+            recipe.ingredients.add(ingredient_obj)
+        
+      
+        
+
 
 
     def create(self, validated_data):
@@ -85,11 +105,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         """
         # Extract tags data and remove from validated_data
         tags = validated_data.pop('tags', [])
+
+        ingredients = validated_data.pop('ingredients', [])
         
         # Create the recipe instance without tags
         recipe = Recipe.objects.create(**validated_data)
 
         self._get_or_create_tags(tags, recipe)
+        self._get_or_create_ingredients(ingredients, recipe)
             
         return recipe
     
