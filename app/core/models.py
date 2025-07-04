@@ -84,6 +84,9 @@ class Recipe(models.Model):
     # Many-to-many relationship with tags
     # If a tag is deleted, it will not affect the recipe (PROTECT)
     tags = models.ManyToManyField('Tag', blank=True)
+    # Many-to-many relationship with ingredients
+    # If an ingredient is deleted, it will not affect the recipe (PROTECT)
+    ingredients = models.ManyToManyField('Ingredient', blank=True)
 
     def __str__(self):
         """Return string representation of recipe."""
@@ -104,6 +107,18 @@ class Tag(models.Model):
         """Return string representation of tag."""
         return self.name
 
+
+class Ingredient(models.Model):
+    """Ingredient to be used in a recipe."""
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )    
+
+    def __str__(self):
+        """Return string representation of ingredient."""
+        return self.name
 
 
 

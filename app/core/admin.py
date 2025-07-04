@@ -34,3 +34,6 @@ admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Recipe)
 # Register the Tag model with the default admin class
 admin.site.register(models.Tag)
+# Register the Ingredient model with the default admin class
+admin.site.register(models.Ingredient)
+
