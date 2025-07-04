@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
@@ -25,3 +27,11 @@ urlpatterns = [
     path('api/user/', include('user.urls')),
     path('api/recipe/', include('recipe.urls')),
 ]
+
+# In development mode (DEBUG=True), Django needs to serve media files
+# This adds URL patterns to serve media files from MEDIA_ROOT at MEDIA_URL
+# For example, if MEDIA_URL='/static/media/' and MEDIA_ROOT='/vol/web/media',
+# then a file at '/vol/web/media/recipes/image.jpg' will be served at '/static/media/recipes/image.jpg'
+# Note: In production, media files should be served by a web server like nginx
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

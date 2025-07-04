@@ -5,8 +5,10 @@ Tests for models.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from decimal import Decimal
+from unittest.mock import patch
 
 from core import models
+
 
 def create_user(email='user@example.com', password='testpass123'):
     """Create and return a new user."""
@@ -116,6 +118,35 @@ class ModelTests(TestCase):
             name='Ingredient1'
         )
         self.assertEqual(str(ingredient), ingredient.name)  
+
+
+
+    @patch('core.models.uuid.uuid4')
+    def test_recipe_file_name_uuid(self, mock_uuid):
+        """Test that recipe image files are stored with unique UUIDs.
+        
+        Use case:
+        When users upload recipe images, we want to ensure each image gets a unique
+        filename to prevent collisions, even if multiple users upload files with
+        the same name. We do this by generating a UUID for each uploaded file.
+
+        This test verifies that:
+        1. The recipe_image_file_path function uses UUID to generate unique names
+        2. Files are stored in the correct uploads/recipe/ directory
+        3. The original file extension is preserved
+        """
+        # Mock the UUID generator to return a predictable value for testing
+        uuid = 'test-uuid'
+        mock_uuid.return_value = uuid
+
+        # Call the function we're testing with a sample image filename
+        file_path = models.recipe_image_file_path(None, 'example.jpg')
+
+        # The function should generate a path like: uploads/recipe/test-uuid.jpg
+        expected_path = f'uploads/recipe/{uuid}.jpg'
+
+        # Verify the generated path matches our expectation
+        self.assertEqual(file_path, expected_path)
 
 
 

@@ -1,40 +1,54 @@
+# Docker Compose configuration for Recipe App API
+# This file defines a multi-container application with Django backend and PostgreSQL database
+# Use case: Development environment setup for a recipe management API
+
 services:
+  # Django application service
   app:
     build:
-      context: .
+      context: .  # Build context is the current directory (where Dockerfile is located)
       args:
-        - DEV=true
+        - DEV=true  # Build argument to enable development mode
 
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Map host port 8000 to container port 8000 for web access
 
     volumes:
-      - ./app:/app
+      - ./app:/app  # Mount the local app directory to /app in container for live code changes
+      - dev-static-data:/vol/web  # Mount the local static files directory to /vol/web/static in container
 
     command: >
       sh -c "
-        # Wait for the database to be ready
+        # Wait for the database to be ready before proceeding
         python manage.py wait_for_db &&
-        # Apply database migrations
+        # Apply database migrations to ensure schema is up to date
         python manage.py migrate &&
-        # Start the Django development server
+        # Start the Django development server on all interfaces
         python manage.py runserver 0.0.0.0:8000"
+    
     environment:
-      - DB_HOST=db
-      - DB_NAME=devdb
-      - DB_USER=devuser
-      - DB_PASS=changeme
+      - DB_HOST=db  # Database host (service name from docker-compose)
+      - DB_NAME=devdb  # Database name for development
+      - DB_USER=devuser  # Database username
+      - DB_PASS=changeme  # Database password (should be changed in production)
+    
     depends_on:
-      - db
+      - db  # Ensure database service starts before app service
 
+  # PostgreSQL database service
   db:
-    image: postgres:13.1-alpine
+    image: postgres:13.1-alpine  # Use lightweight Alpine-based PostgreSQL image
     volumes:
-      - dev-db-data:/var/lib/postgresql/data
+      - dev-db-data:/var/lib/postgresql/data  # Persist database data across container restarts
     environment:
-      - POSTGRES_DB=devdb
-      - POSTGRES_USER=devuser
-      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=devdb  # Create database with this name
+      - POSTGRES_USER=devuser  # Create user with this username
+      - POSTGRES_PASSWORD=changeme  # Set user password (should be changed in production)
 
+# Named volumes for data persistence
 volumes:
-  dev-db-data:
+  dev-db-data:  # PostgreSQL data volume - persists data even when containers are removed
+  dev-static-data:  # Static files volume - persists static files across container restarts
+ 
+ 
+

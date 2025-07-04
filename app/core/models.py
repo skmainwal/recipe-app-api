@@ -1,6 +1,9 @@
 """
 Database models.
 """
+import uuid
+import os
+
 # Importing Django's models module to define database models
 from django.db import models
 from django.contrib.auth.models import (
@@ -10,6 +13,24 @@ from django.contrib.auth.models import (
 )
 
 from django.conf import settings
+
+def recipe_image_file_path(instance, filename):
+    """Generate file path for new recipe image.
+    
+    This function generates a unique file path for storing recipe images.
+    When a user uploads an image for a recipe, this function:
+    1. Extracts the file extension from the original filename
+    2. Generates a new unique filename using UUID to prevent naming conflicts
+    3. Returns a path like 'uploads/recipe/uuid.jpg' where the image will be stored
+    
+    The generated path is used by Django to store the image in MEDIA_ROOT
+    as configured in settings.py.
+    """
+    ext = os.path.splitext(filename)[1]  # Get file extension (e.g. .jpg)
+    filename = f'{uuid.uuid4()}{ext}'    # Generate unique filename with UUID
+    return os.path.join('uploads', 'recipe', filename)
+
+
 
 
 
@@ -87,6 +108,8 @@ class Recipe(models.Model):
     # Many-to-many relationship with ingredients
     # If an ingredient is deleted, it will not affect the recipe (PROTECT)
     ingredients = models.ManyToManyField('Ingredient', blank=True)
+
+    image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 
     def __str__(self):
         """Return string representation of recipe."""

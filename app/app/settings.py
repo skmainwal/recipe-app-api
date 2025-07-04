@@ -127,7 +127,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+# URL prefix for static files (CSS, JS, Images)
+# This is the URL path where static files will be served from
+# E.g. if STATIC_URL='/static/', then file at STATIC_ROOT/style.css 
+# will be served at /static/style.css
 STATIC_URL = '/static/'
+
+# URL prefix for media files (user uploaded content)
+# This is the URL path where media files will be served from
+# E.g. if MEDIA_URL='/static/media/', then file at MEDIA_ROOT/images/pic.jpg
+# will be served at /static/media/images/pic.jpg
+MEDIA_URL = '/static/media/'
+
+# Absolute filesystem path to the directory that will hold user-uploaded files
+# Files uploaded through Django's file upload mechanism will be stored here
+MEDIA_ROOT = '/vol/web/media'
+
+# Absolute filesystem path to the directory where Django will collect all static files
+# When running collectstatic, Django will gather static files into this directory
+STATIC_ROOT = '/vol/web/static'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
