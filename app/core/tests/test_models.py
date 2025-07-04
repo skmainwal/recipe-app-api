@@ -8,6 +8,10 @@ from decimal import Decimal
 
 from core import models
 
+def create_user(email='user@example.com', password='testpass123'):
+    """Create and return a new user."""
+    return get_user_model().objects.create_user(email, password)
+
 
 class ModelTests(TestCase):
     """Test models."""
@@ -93,3 +97,17 @@ class ModelTests(TestCase):
         # matches the recipe's title, which is the expected behavior
         # This verifies that the __str__ method is implemented correctly
         self.assertEqual(str(recipe), recipe.title)
+
+
+    def test_create_recipe_with_new_tag(self):
+        """Test creating a recipe with a new tag."""
+        # Create a test user that will own the recipe
+        # This is required because recipes must be associated with a user
+        user = create_user()
+        tag = models.Tag.objects.create(user=user, name='Tag1')
+        self.assertEqual(str(tag), tag.name)
+
+
+
+       
+

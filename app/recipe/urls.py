@@ -9,6 +9,7 @@ router = DefaultRouter()
 # Register the RecipeViewSet with the 'recipes' URL prefix
 # This will create URLs for listing, creating, retrieving, updating and deleting recipes
 router.register('recipes', views.RecipeViewSet)
+router.register('tags', views.TagViewSet)
 
 # Define the app namespace for URL reversing
 app_name = 'recipe'

@@ -30,4 +30,7 @@ class UserAdmin(BaseUserAdmin):
 
 # Register the User model with the custom UserAdmin class
 admin.site.register(models.User, UserAdmin)
+# Register the Recipe model with the default admin class
 admin.site.register(models.Recipe)
+# Register the Tag model with the default admin class
+admin.site.register(models.Tag)

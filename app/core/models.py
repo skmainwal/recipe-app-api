@@ -81,7 +81,29 @@ class Recipe(models.Model):
     # Optional URL field to link to external recipe sources
     # blank=True means this field is optional
     link = models.CharField(max_length=255, blank=True)
+    # Many-to-many relationship with tags
+    # If a tag is deleted, it will not affect the recipe (PROTECT)
+    tags = models.ManyToManyField('Tag', blank=True)
 
     def __str__(self):
         """Return string representation of recipe."""
         return self.title
+
+
+class Tag(models.Model):
+    """Tag for filtering recipes."""
+    # Link tag to a specific user (foreign key relationship)
+    # If user is deleted, all their tags will be deleted (CASCADE)
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        """Return string representation of tag."""
+        return self.name
+
+
+
+
