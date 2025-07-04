@@ -161,5 +161,31 @@ class RecipeDetailSerializer(RecipeSerializer):
     class Meta(RecipeSerializer.Meta):
         fields = RecipeSerializer.Meta.fields + ['description']
 
+class RecipeImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes.
+    
+    Use case:
+    When users want to add an image to their recipe, they need a dedicated endpoint
+    and serializer to handle image file uploads. This serializer:
+    1. Validates that an image file was provided
+    2. Handles the image upload process
+    3. Associates the image with the specific recipe
+    
+    The serializer only exposes the minimum required fields:
+    - id: To identify which recipe to attach the image to (read-only)
+    - image: The actual image file being uploaded (required)
+    
+    Example usage:
+    POST /api/recipe/1/upload-image/ with multipart form data containing
+    an image file will attach that image to recipe with id=1
+    """
+    class Meta:
+        model = Recipe
+        fields = ['id', 'image']  # Only expose id and image fields
+        read_only_fields = ['id']  # id should not be modifiable 
+        extra_kwargs = {
+            'image': {'required': True}  # Image must be provided in request
+        }
+
 
 

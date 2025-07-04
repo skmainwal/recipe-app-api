@@ -1,6 +1,9 @@
 """Test for recipe APIs."""
 
 from decimal import Decimal
+import tempfile
+import os
+from PIL import Image
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -21,6 +24,24 @@ def detail_url(recipe_id):
     """Create and return a recipe detail URL."""
     return reverse('recipe:recipe-detail', args=[recipe_id])
 
+def image_upload_url(recipe_id):
+    """Return URL for recipe image upload.
+    
+    Use case:
+    When testing image upload functionality for recipes, we need to construct
+    the proper URL endpoint that handles image uploads. This helper function
+    generates that URL using Django's reverse() function.
+
+    For example, if recipe_id=1, this will return a URL like:
+    '/api/recipe/1/upload-image/'
+
+    Args:
+        recipe_id: ID of the recipe to upload image for
+
+    Returns:
+        URL string for uploading an image to the specified recipe
+    """
+    return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 def create_recipe(user, **params):
     """Create and return a sample recipe.
@@ -415,3 +436,62 @@ class PrivateRecipeApiTests(TestCase):
 
 
     
+
+
+class ImageUploadTests(TestCase):
+    """Test for the image upload API."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(email='user@example.com', password='testpass123')
+        self.client.force_authenticate(self.user)
+        self.recipe = create_recipe(user=self.user)
+
+    def tearDown(self):
+        """Clean up after each test by removing uploaded test images.
+        
+        Use case:
+        When testing image uploads, temporary test images are created on the filesystem.
+        We need to clean these up after each test to:
+        1. Prevent accumulation of test files taking up disk space
+        2. Ensure a clean state for subsequent tests
+        3. Follow testing best practices of cleaning up test artifacts
+        
+        This method is automatically called by Django's test framework after each test method.
+        """
+        self.recipe.image.delete()  # Delete the test image file from storage
+
+    def test_upload_image_to_recipe(self):
+        """Test uploading an image to a recipe.
+        
+        Use case:
+        When users want to add an image to their recipe, they need to be able to upload
+        image files through the API. This test verifies that:
+        1. The image upload endpoint accepts image files
+        2. The image is properly saved and associated with the recipe
+        3. The image file is physically stored on the filesystem
+        4. The API returns a successful response with image data
+        
+        The test creates a temporary test image, uploads it via the API, and validates
+        that all parts of the image upload process work correctly.
+        """
+        url = image_upload_url(self.recipe.id)
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+            img = Image.new('RGB', (10, 10))
+            img.save(image_file, format='JPEG')
+            image_file.seek(0)
+            payload = {'image': image_file}
+            res = self.client.post(url, payload, format='multipart')
+
+        self.recipe.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.recipe.image.path))
+
+
+    def test_upload_image_bad_request(self):
+        """Test uploading an invalid image."""
+        url = image_upload_url(self.recipe.id)
+        payload = {'image': 'notanimage'}
+        res = self.client.post(url, payload, format='multipart')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

@@ -161,3 +161,11 @@ AUTH_USER_MODEL='core.User'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+# Configuration settings for drf-spectacular (OpenAPI/Swagger documentation)
+SPECTACULAR_SETTINGS = {
+    # When True, splits request components into separate sections in the schema
+    # This makes the API documentation clearer by separating request body, 
+    # query parameters, and path parameters into distinct components
+    'COMPONENT_SPLIT_REQUEST': True,
+}
